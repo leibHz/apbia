@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}{{ chat.titulo }} - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="chat-visualizar-container">
+    <!-- Breadcrumb -->
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('orientador.dashboard') }}">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('orientador.visualizar_orientado', participante_id=orientado.id) }}">
+                    {{ orientado.nome_completo }}
+                </a>
+            </li>
+            <li class="breadcrumb-item">{{ chat.titulo }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Header -->
+    <div class="chat-header-card">
+        <div class="chat-header-content">
+            <div class="chat-header-info">
+                <h3>
+                    <i class="fas fa-comment-dots"></i> {{ chat.titulo }}
+                </h3>
+                <div class="chat-header-meta">
+                    <span>
+                        <i class="fas fa-user-graduate"></i> {{ orientado.nome_completo }}
+                    </span>
+                    <span style="margin: 0 1rem;">•</span>
+                    <span>
+                        <i class="far fa-calendar"></i> 
+                        {{ chat.data_criacao.strftime('%d/%m/%Y %H:%M') if chat.data_criacao else '' }}
+                    </span>
+                </div>
+            </div>
+            <div>
+                <a href="{{ url_for('orientador.visualizar_orientado', participante_id=orientado.id) }}" 
+                   class="btn btn-voltar">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mensagens -->
+    <div class="messages-container" id="messagesContainer">
+        {% if mensagens %}
+            {% for msg in mensagens %}
+            <div class="message {{ msg.role }}" data-message-id="{{ msg.id }}">
+                <div class="message-content">
+                    {{ msg.conteudo }}
+                </div>
+                
+                <!-- Botão para adicionar nota (apenas para respostas da IA) -->
+                {% if msg.role == 'model' %}
+                <div style="margin-top: 0.75rem;">
+                    <button class="btn-add-note" data-message-id="{{ msg.id }}" data-preview="{{ msg.conteudo[:50]|replace('"', '&quot;')|replace("'", '&apos;')|e }}" onclick="openNoteModalFromBtn(this)">
+                        <i class="fas fa-sticky-note"></i> Adicionar Nota
+                    </button>
+                </div>
+                {% endif %}
+                
+                <!-- Mostra notas existentes -->
+                {% if msg.notas and msg.notas|length > 0 %}
+                <div class="existing-notes">
+                    <strong style="color: var(--warning);">
+                        <i class="fas fa-sticky-note"></i> Notas do Orientador:
+                    </strong>
+                    {% for nota in msg.notas %}
+                    <div class="note-item">
+                        <p style="margin: 0; color: var(--text-primary);">{{ nota.nota }}</p>
+                        <small style="color: var(--text-muted);">
+                            Por: {{ nota.usuarios.nome_completo if nota.usuarios else 'Orientador' }} - 
+                            {{ nota.data_criacao }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="timestamp">
+                    {{ msg.timestamp.strftime('%H:%M') if msg.timestamp else '' }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem; opacity: 0.3;"></i>
+            <h5 style="color: var(--text-primary);">Nenhuma mensagem nesta conversa</h5>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Notas Gerais do Chat -->
+    <div class="notas-section">
+        <div class="notas-header">
+            <h5>
+                <i class="fas fa-clipboard"></i> Notas Gerais sobre a Conversa
+            </h5>
+        </div>
+        <form id="formNotas" onsubmit="salvarNotas(event)">
+            <textarea class="notas-textarea" 
+                      id="notasTextarea" 
+                      name="notas"
+                      placeholder="Adicione observações gerais sobre toda a conversa...">{{ chat.notas_orientador or '' }}</textarea>
+            
+            <div id="saveIndicator" style="display: none; margin-top: 0.5rem; padding: 0.5rem; border-radius: 4px; text-align: center;">
+                <i class="fas fa-check-circle"></i>
+                <span id="saveMessage"></span>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                <button type="submit" class="btn btn-salvar" id="btnSalvarNotas">
+                    <i class="fas fa-save"></i> Salvar Notas Gerais
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ✅ NOVO: Modal para adicionar nota em mensagem específica -->
+<div class="note-modal" id="noteModal">
+    <div class="note-modal-content">
+        <div class="note-modal-header">
+            <h5 style="margin: 0;">
+                <i class="fas fa-sticky-note"></i> Adicionar Nota à Mensagem
+            </h5>
+            <button onclick="closeNoteModal()" style="background: none; border: none; color: #000; font-size: 1.5rem; cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="note-modal-body">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                <strong>Mensagem:</strong>
+                <br>
+                <span id="noteModalMessagePreview"></span>
+            </p>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Sua Nota:</label>
+            <textarea id="noteModalTextarea" 
+                      rows="6" 
+                      style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-darker); color: var(--text-primary); resize: vertical;"
+                      placeholder="Digite suas observações sobre esta resposta da IA..."></textarea>
+        </div>
+        <div class="note-modal-footer">
+            <button onclick="closeNoteModal()" class="btn btn-cancelar">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button onclick="salvarNotaMensagem()" class="btn btn-salvar" id="btnSalvarNotaMensagem">
+                <i class="fas fa-check"></i> Salvar Nota
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// separar script depois
+
+let currentMessageId = null;
+
+// Scroll automático
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('messagesContainer');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+});
+
+// Abrir modal de nota
+function openNoteModal(messageId, messagePreview) {
+    currentMessageId = messageId;
+    document.getElementById('noteModalMessagePreview').textContent = messagePreview + '...';
+    document.getElementById('noteModalTextarea').value = '';
+    document.getElementById('noteModal').classList.add('active');
+}
+
+// Nova função: abre modal usando atributos data
+function openNoteModalFromBtn(btn) {
+    const messageId = parseInt(btn.getAttribute('data-message-id'));
+    const preview = btn.getAttribute('data-preview');
+    openNoteModal(messageId, preview);
+}
+
+// Fechar modal
+function closeNoteModal() {
+    document.getElementById('noteModal').classList.remove('active');
+    currentMessageId = null;
+}
+
+// Salvar nota da mensagem
+async function salvarNotaMensagem() {
+    const nota = document.getElementById('noteModalTextarea').value.trim();
+    
+    if (!nota) {
+        alert('Por favor, escreva uma nota antes de salvar.');
+        return;
+    }
+    
+    const btn = document.getElementById('btnSalvarNotaMensagem');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+    
+    try {
+        const response = await fetch('/orientador/adicionar-nota', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mensagem_id: currentMessageId,
+                nota: nota
+            })
+        });
+        
+        const data = await response.json();
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Salvar Nota';
+        
+        if (data.success) {
+            APBIA.showNotification('✅ Nota adicionada com sucesso!', 'success');
+            closeNoteModal();
+            // Recarrega página para mostrar a nota
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            APBIA.showNotification('❌ Erro: ' + data.message, 'error');
+        }
+    } catch (error) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Salvar Nota';
+        APBIA.showNotification('❌ Erro ao salvar nota', 'error');
+        console.error(error);
+    }
+}
+
+// Salvar notas gerais do chat
+async function salvarNotas(event) {
+    event.preventDefault();
+    
+    const notas = document.getElementById('notasTextarea').value;
+    const chatId = {{ chat.id }};
+    const btnSalvar = document.getElementById('btnSalvarNotas');
+    const saveIndicator = document.getElementById('saveIndicator');
+    const saveMessage = document.getElementById('saveMessage');
+    
+    btnSalvar.disabled = true;
+    btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+    
+    try {
+        const response = await fetch(`/orientador/chat/${chatId}/notas`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notas: notas })
+        });
+        
+        const data = await response.json();
+        
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar Notas Gerais';
+        
+        if (data.success) {
+            saveIndicator.style.display = 'block';
+            saveIndicator.style.background = 'rgba(76, 175, 80, 0.1)';
+            saveIndicator.style.border = '1px solid #4CAF50';
+            saveIndicator.style.color = '#4CAF50';
+            saveMessage.textContent = 'Notas salvas com sucesso!';
+            
+            APBIA.showNotification('✅ Notas gerais salvas!', 'success');
+            
+            setTimeout(() => {
+                saveIndicator.style.display = 'none';
+            }, 3000);
+        } else {
+            saveIndicator.style.display = 'block';
+            saveIndicator.style.background = 'rgba(244, 67, 54, 0.1)';
+            saveIndicator.style.border = '1px solid #F44336';
+            saveIndicator.style.color = '#F44336';
+            saveMessage.textContent = 'Erro: ' + (data.message || '');
+            
+            APBIA.showNotification('❌ Erro ao salvar', 'error');
+        }
+    } catch (error) {
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = '<i class="fas fa-save"></i> Salvar Notas Gerais';
+        APBIA.showNotification('❌ Erro de conexão', 'error');
+        console.error(error);
+    }
+}
+
+// Fechar modal ao clicar fora
+document.getElementById('noteModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeNoteModal();
+    }
+});
+</script>
+{% endblock %}

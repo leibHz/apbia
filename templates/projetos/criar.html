@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Projeto - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="criar-container">
+    <!-- Header -->
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('project.index') }}">Projetos</a></li>
+            <li class="breadcrumb-item">Novo Projeto</li>
+        </ol>
+    </nav>
+    
+    <div class="criar-header">
+        <h2><i class="fas fa-plus-circle"></i> Criar Novo Projeto</h2>
+    </div>
+    
+    <!-- Alerta sobre Modo Bragantec Automático -->
+    <div class="bragantec-alert">
+        <div class="bragantec-alert-content">
+            <div>
+                <i class="fas fa-robot bragantec-alert-icon"></i>
+            </div>
+            <div class="bragantec-alert-text">
+                <h5>
+                    <i class="fas fa-magic"></i>
+                    <strong>Gerador de Ideias Baseado em Projetos Vencedores</strong>
+                </h5>
+                <p>
+                    A IA vai <strong>analisar TODAS as edições anteriores da Bragantec</strong> 
+                    (incluindo os cadernos de resumos completos) para criar <strong>4 ideias de projetos 
+                    com ALTO POTENCIAL DE VITÓRIA</strong>, uma para cada categoria.
+                </p>
+                <div class="alert-warning-box">
+                    <strong>⚠️ Como funciona:</strong>
+                    <ol>
+                        <li><strong>Análise automática</strong> dos projetos vencedores anteriores</li>
+                        <li><strong>Identificação de padrões</strong> de sucesso (temas, abordagens, metodologias)</li>
+                        <li><strong>Criação de 4 novas ideias</strong> inspiradas nos vencedores (mas não cópias!)</li>
+                        <li><strong>Adequação aos critérios</strong> de avaliação da Bragantec 2025</li>
+                    </ol>
+                </div>
+                <div class="alert-info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Modo Bragantec Automático:</strong> 
+                    Esta operação usa o histórico COMPLETO da Bragantec e pode consumir 
+                    <strong>~100k-200k tokens de contexto</strong>. O processo pode levar 
+                    <strong>20-40 segundos</strong>, mas garante ideias de alta qualidade baseadas em dados reais!
+                </div>
+            </div>
+            <div>
+                <button class="btn-gerar-ideias" id="btnGerarIdeias">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Gerar Ideias</strong>
+                    <br>
+                    <small>Análise Completa</small>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulário -->
+    <form id="formProjeto">
+        <!-- Informações Básicas -->
+        <div class="campo-grupo">
+            <h4><i class="fas fa-info-circle"></i> Informações Básicas</h4>
+            
+            <div class="form-group">
+                <label class="form-label">Título do Projeto *</label>
+                <input type="text" class="form-control" id="nome" name="nome" required
+                       placeholder="Ex: Sistema de Irrigação Inteligente com IoT">
+                <small class="form-text">
+                    Deve ser simples, direto e atrativo
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Categoria *</label>
+                <select class="form-select" id="categoria" name="categoria" required>
+                    <option value="">Selecione uma categoria</option>
+                    <option value="Ciências da Natureza e Exatas">Ciências da Natureza e Exatas</option>
+                    <option value="Informática">Informática</option>
+                    <option value="Ciências Humanas e Linguagens">Ciências Humanas e Linguagens</option>
+                    <option value="Engenharias">Engenharias</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Ano da Edição</label>
+                <input type="number" class="form-control" id="ano_edicao" name="ano_edicao" 
+                       value="2025" min="2025" max="2030">
+            </div>
+        </div>
+        
+        <!-- Resumo -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-file-alt"></i> Resumo</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="resumo">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            <textarea class="form-textarea" id="resumo" name="resumo" rows="5" 
+                      maxlength="300" placeholder="Máximo 300 palavras..."></textarea>
+            <div class="char-counter">
+                <small class="form-text">
+                    Deve conter: Introdução, Objetivos, Métodos, Resultados esperados
+                </small>
+                <small id="resumo-count" class="form-text">0/2000</small>
+            </div>
+        </div>
+        
+        <!-- Palavras-chave -->
+        <div class="campo-grupo">
+            <h5><i class="fas fa-tags"></i> Palavras-Chave</h5>
+            <input type="text" class="form-control" id="palavras_chave" name="palavras_chave"
+                   placeholder="Ex: IoT, Sustentabilidade, Agricultura">
+            <small class="form-text">Três palavras-chave separadas por vírgula</small>
+        </div>
+        
+        <!-- Introdução -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-book-open"></i> Introdução</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="introducao">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            <textarea class="form-textarea" id="introducao" name="introducao" rows="8"
+                      placeholder="Apresente o tema, sua relevância e fundamentação teórica..."></textarea>
+            <small class="form-text">
+                Responda: Qual o problema? Por que é importante? O que já se sabe sobre o tema?
+            </small>
+        </div>
+        
+        <!-- Objetivos -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-bullseye"></i> Objetivos</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="objetivos">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Objetivo Geral</label>
+                <textarea class="form-textarea" id="objetivo_geral" name="objetivo_geral" rows="3"
+                          placeholder="Descreva a finalidade principal do projeto..."></textarea>
+                <small class="form-text">Use verbos no infinitivo: desenvolver, analisar, comparar...</small>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Objetivos Específicos</label>
+                <div id="objetivos-especificos-container" class="objetivos-list">
+                    <div class="objetivo-item">
+                        <span>1.</span>
+                        <input type="text" class="form-control objetivo-especifico" 
+                               placeholder="Primeiro objetivo específico...">
+                    </div>
+                </div>
+                <button type="button" class="btn-adicionar" id="addObjetivo">
+                    <i class="fas fa-plus"></i> Adicionar Objetivo
+                </button>
+            </div>
+        </div>
+        
+        <!-- Metodologia -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-microscope"></i> Metodologia</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="metodologia">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            <textarea class="form-textarea" id="metodologia" name="metodologia" rows="8"
+                      placeholder="Descreva materiais, métodos, procedimentos e equipamentos..."></textarea>
+            <small class="form-text">
+                Detalhe: tipo de pesquisa, dados a coletar, recursos necessários, como será desenvolvido
+            </small>
+        </div>
+        
+        <!-- Cronograma -->
+        <div class="campo-grupo">
+            <h5><i class="fas fa-calendar-alt"></i> Cronograma</h5>
+            <p class="form-text">Distribua as etapas do projeto ao longo do tempo</p>
+            <div class="table-responsive">
+                <table class="cronograma-table" id="cronogramaTable">
+                    <thead>
+                        <tr>
+                            <th>Etapa</th>
+                            <th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th>
+                            <th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cronogramaBody">
+                        <tr>
+                            <td><input type="text" placeholder="Ex: Definição do tema"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td>
+                                <button type="button" class="btn-remover-etapa remove-etapa">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" class="btn-adicionar" id="addEtapa">
+                <i class="fas fa-plus"></i> Adicionar Etapa
+            </button>
+        </div>
+        
+        <!-- Resultados Esperados -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-chart-line"></i> Resultados Esperados</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="resultados_esperados">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            <textarea class="form-textarea" id="resultados_esperados" name="resultados_esperados" rows="6"
+                      placeholder="Quais as expectativas e implicações do projeto quando finalizado?"></textarea>
+        </div>
+        
+        <!-- Referências -->
+        <div class="campo-grupo">
+            <h5><i class="fas fa-book"></i> Referências Bibliográficas</h5>
+            <textarea class="form-textarea" id="referencias_bibliograficas" 
+                      name="referencias_bibliograficas" rows="6"
+                      placeholder="Liste todas as fontes consultadas (livros, sites, artigos, etc.) seguindo normas ABNT"></textarea>
+        </div>
+        
+        <!-- Continuação de Projeto Anterior -->
+        <div class="campo-grupo">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eh_continuacao" name="eh_continuacao">
+                <label class="form-check-label" for="eh_continuacao">
+                    <strong>Este projeto é continuação de um projeto anterior?</strong>
+                </label>
+            </div>
+            
+            <div id="continuacao-fields" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Título do Projeto Anterior</label>
+                    <input type="text" class="form-control" id="projeto_anterior_titulo" 
+                           name="projeto_anterior_titulo">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Resumo do Projeto Anterior</label>
+                    <textarea class="form-textarea" id="projeto_anterior_resumo" 
+                              name="projeto_anterior_resumo" rows="4"></textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Data de Início</label>
+                        <input type="date" class="form-control" id="projeto_anterior_inicio" 
+                               name="projeto_anterior_inicio">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Término</label>
+                        <input type="date" class="form-control" id="projeto_anterior_termino" 
+                               name="projeto_anterior_termino">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botões de Ação -->
+        <div class="campo-grupo">
+            <div class="acoes-finais">
+                <a href="{{ url_for('project.index') }}" class="btn btn-cancelar">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn-rascunho" data-status="rascunho">
+                        <i class="fas fa-save"></i> Salvar Rascunho
+                    </button>
+                    <button type="submit" class="btn btn-salvar" data-status="em_andamento">
+                        <i class="fas fa-check"></i> Salvar e Continuar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingIA">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <h3><i class="fas fa-brain"></i> IA Analisando Projetos Vencedores...</h3>
+        <p id="loadingMessage">Processando histórico completo da Bragantec...</p>
+        <div style="margin-top: 1rem;">
+            <small style="color: var(--text-muted);">
+                <i class="fas fa-clock"></i> Isso pode levar 20-40 segundos<br>
+                <i class="fas fa-database"></i> Analisando ~100k-200k tokens de contexto
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Ideias Geradas -->
+<div id="modalIdeias" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10000; overflow-y: auto;">
+    <div style="max-width: 1200px; margin: 2rem auto; background: var(--bg-card); border-radius: 12px; border: 2px solid var(--warning);">
+        <div style="background: var(--warning); color: #000; padding: 1.5rem; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;">
+                <i class="fas fa-trophy"></i> 
+                <strong>Ideias Baseadas em Projetos Vencedores</strong>
+            </h3>
+            <button onclick="document.getElementById('modalIdeias').style.display='none'" style="background: none; border: none; color: #000; font-size: 1.5rem; cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="ideiasContent" style="padding: 2rem;">
+            <!-- Conteúdo será preenchido dinamicamente -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/projetos.js') }}"></script>
+{% endblock %}

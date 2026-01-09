@@ -1,0 +1,152 @@
+
+{% extends "base.html" %}
+
+{% block title %}Tipos de IA - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="usuarios-container">
+    <div class="usuarios-header">
+        <div class="usuarios-header-info">
+            <h2>
+                <i class="fas fa-robot"></i> Tipos de IA
+            </h2>
+            <p>Gerencie os tipos de IA disponíveis no sistema</p>
+        </div>
+        <button class="btn btn-salvar" onclick="openModal('addTipoModal')">
+            <i class="fas fa-plus"></i> Novo Tipo
+        </button>
+    </div>
+    
+    <!-- Cards de Tipos -->
+    <div class="stats-grid">
+        {% for tipo in tipos %}
+        <div class="stat-card {{ 'primary' if tipo.id == 1 else 'success' if tipo.id == 2 else 'info' if tipo.id == 3 else 'secondary' }}">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h6>{{ tipo.nome }}</h6>
+                    <h2>{{ stats.get(tipo.id, 0) }}</h2>
+                    <small>chats usando</small>
+                </div>
+                <i class="fas fa-robot stat-card-icon {{ 'primary' if tipo.id == 1 else 'success' if tipo.id == 2 else 'info' if tipo.id == 3 else 'secondary' }}"></i>
+            </div>
+            <div class="stat-card-button">
+                <button class="btn-toggle-ia" onclick="editTipo({{ tipo.id }}, '{{ tipo.nome }}')">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                {% if stats.get(tipo.id, 0) == 0 %}
+                <button class="btn-toggle-ia" style="background: var(--danger);" onclick="deleteTipo({{ tipo.id }}, '{{ tipo.nome }}')">
+                    <i class="fas fa-trash"></i> Deletar
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Tabela Detalhada -->
+    <div class="table-card" style="margin-top: 2rem;">
+        <div class="table-card-body">
+            <div class="table-responsive">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Chats Usando</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tipo in tipos %}
+                        <tr>
+                            <td>{{ tipo.id }}</td>
+                            <td>
+                                <strong>{{ tipo.nome }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge success">
+                                    {{ stats.get(tipo.id, 0) }} chats
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action edit" onclick="editTipo({{ tipo.id }}, '{{ tipo.nome }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% if stats.get(tipo.id, 0) == 0 %}
+                                    <button class="btn-action delete" onclick="deleteTipo({{ tipo.id }}, '{{ tipo.nome }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Adicionar -->
+<div class="modal-overlay" id="addTipoModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5><i class="fas fa-robot"></i> Novo Tipo de IA</h5>
+            <button class="modal-close" onclick="closeModal('addTipoModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="formAddTipo">
+                <div class="form-group">
+                    <label class="form-label">Nome do Tipo *</label>
+                    <input type="text" class="form-control" id="addNome" required>
+                    <small class="form-text">Ex: Geral, Participante, Orientador, Revisor, etc.</small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-cancelar" onclick="closeModal('addTipoModal')">Cancelar</button>
+            <button class="btn btn-salvar" onclick="salvarNovoTipo()">
+                <i class="fas fa-save"></i> Salvar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal-overlay" id="editTipoModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5><i class="fas fa-edit"></i> Editar Tipo de IA</h5>
+            <button class="modal-close" onclick="closeModal('editTipoModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="formEditTipo">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label class="form-label">Nome do Tipo *</label>
+                    <input type="text" class="form-control" id="editNome" required>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-cancelar" onclick="closeModal('editTipoModal')">Cancelar</button>
+            <button class="btn btn-salvar" onclick="salvarEdicaoTipo()">
+                <i class="fas fa-save"></i> Atualizar
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin_tipos_ia.js') }}"></script>
+{% endblock %}

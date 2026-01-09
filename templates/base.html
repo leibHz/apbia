@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="APBIA - Assistente de Projetos para Bragantec Baseado em IA">
+    <title>{% block title %}APBIA{% endblock %}</title>
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/cc533e21e1.js" crossorigin="anonymous"></script>
+
+    <!-- CSS Customizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body{% if current_user.is_authenticated %} class="logged-in" data-user-id="{{ current_user.id }}" {% endif %}>
+    <!-- Navbar -->
+    {% if current_user.is_authenticated %}
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a class="navbar-brand" href="{{ url_for('chat.index') }}">
+                <i class="fas fa-robot"></i>
+                <strong>APBIA</strong>
+            </a>
+
+            <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <ul class="navbar-nav" id="navbarNav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('chat.index') }}">
+                        <i class="fas fa-comments"></i> Chat
+                    </a>
+                </li>
+                {% if current_user.is_participante() or current_user.is_orientador() %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('project.index') }}">
+                        <i class="fas fa-flask"></i> Projetos
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.is_admin() %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i> Admin
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.is_authenticated and current_user.is_admin() %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin.gemini_stats_page') }}" title="Estatísticas Gemini">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="badge badge-info" id="gemini-stats-badge">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span class="visually-hidden">Carregando estatísticas</span>
+                        </span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.is_orientador() %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('orientador.dashboard') }}">
+                        <i class="fas fa-chalkboard-teacher"></i> Orientação
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown">
+                        <i class="fas fa-user-circle"></i>
+                        {{ current_user.nome_completo }}
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{{ url_for('auth.perfil') }}">
+                            <i class="fas fa-user-edit"></i> Editar Perfil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Mensagens Flash -->
+    <div class="alert-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+            <i
+                class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'info-circle' if category == 'info' else 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
+            <span>{{ message }}</span>
+            <button type="button" class="alert-close" aria-label="Fechar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>
+                <i class="fas fa-flask"></i>
+                © 2026 APBIA - Assistente de Projetos para Bragantec
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Principal -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/base.js') }}"></script>
+
+    <!-- ✅ NOVO: Session Monitor (verificação em tempo real) -->
+    {% if current_user.is_authenticated %}
+    <script src="{{ url_for('static', filename='js/session_monitor.js') }}"></script>
+    {% endif %}
+
+    <!-- Script para navbar mobile -->
+    <script>
+        // Toggle navbar mobile
+        const navbarToggle = document.getElementById('navbarToggle');
+        const navbarNav = document.getElementById('navbarNav');
+
+        if (navbarToggle && navbarNav) {
+            navbarToggle.addEventListener('click', function () {
+                navbarNav.classList.toggle('active');
+                const icon = this.querySelector('i');
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            });
+
+            // Fechar menu ao clicar em um link (mobile)
+            const navLinks = navbarNav.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function () {
+                    if (window.innerWidth <= 968) {
+                        navbarNav.classList.remove('active');
+                        const icon = navbarToggle.querySelector('i');
+                        icon.classList.add('fa-bars');
+                        icon.classList.remove('fa-times');
+                    }
+                });
+            });
+
+            // Toggle dropdown no mobile
+            const dropdowns = document.querySelectorAll('.nav-item.dropdown');
+            dropdowns.forEach(dropdown => {
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                toggle.addEventListener('click', function (e) {
+                    if (window.innerWidth <= 968) {
+                        e.preventDefault();
+                        dropdown.classList.toggle('active');
+                    }
+                });
+            });
+        }
+
+        // Auto-dismiss alerts
+        document.querySelectorAll('.alert-close').forEach(button => {
+            button.addEventListener('click', function () {
+                this.closest('.alert').style.animation = 'slideUp 0.3s ease-out';
+                setTimeout(() => {
+                    this.closest('.alert').remove();
+                }, 300);
+            });
+
+            // Auto-dismiss após 5 segundos
+            setTimeout(() => {
+                const alert = button.closest('.alert');
+                if (alert) {
+                    alert.style.animation = 'slideUp 0.3s ease-out';
+                    setTimeout(() => alert.remove(), 300);
+                }
+            }, 5000);
+        });
+    </script>
+
+    <style>
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+
+    {% block extra_js %}{% endblock %}
+    </body>
+
+</html>

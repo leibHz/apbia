@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Projetos (Anônimo) - APBIA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guest-banner {
+        background: linear-gradient(135deg, #66ea92 0%, #4ba24f 100%);
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .guest-banner i {
+        font-size: 1.25rem;
+    }
+
+    .project-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: all 0.2s;
+    }
+
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .project-card h5 {
+        margin-bottom: 0.5rem;
+    }
+
+    .project-card .category-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Banner Modo Anônimo -->
+    <div class="guest-banner">
+        <i class="fas fa-user-secret"></i>
+        <div>
+            <strong>Modo Anônimo</strong>
+            <small style="display: block; opacity: 0.9;">Seus projetos ficam salvos apenas no seu navegador</small>
+        </div>
+        <a href="{{ url_for('guest.index') }}" class="btn btn-sm ms-auto"
+            style="background: rgba(255,255,255,0.2); border: 1px solid white; color: white;">
+            <i class="fas fa-comments"></i> Voltar ao Chat
+        </a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-project-diagram"></i> Meus Projetos</h2>
+        <a href="{{ url_for('guest.projetos_novo') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Novo Projeto
+        </a>
+    </div>
+
+    <div class="row g-4" id="projectsGrid">
+        <!-- Projetos carregados via JavaScript -->
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display: none;">
+        <i class="fas fa-folder-open"></i>
+        <h4>Nenhum projeto ainda</h4>
+        <p>Crie seu primeiro projeto científico para a Bragantec!</p>
+        <a href="{{ url_for('guest.projetos_novo') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Criar Projeto
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadGuestProjects();
+    });
+
+    function loadGuestProjects() {
+        const projectsJson = localStorage.getItem('apbia_guest_projects');
+        const projects = projectsJson ? JSON.parse(projectsJson) : [];
+
+        const grid = document.getElementById('projectsGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        if (projects.length === 0) {
+            grid.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        grid.style.display = 'flex';
+        emptyState.style.display = 'none';
+        grid.innerHTML = '';
+
+        projects.forEach(project => {
+            const date = new Date(project.data_criacao);
+            const dateStr = date.toLocaleDateString('pt-BR');
+
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4';
+            col.innerHTML = `
+            <div class="project-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5>${project.nome || 'Sem título'}</h5>
+                    ${project.gerado_por_ia ? '<span class="badge bg-success"><i class="fas fa-robot"></i> IA</span>' : ''}
+                </div>
+                <span class="category-badge">${project.categoria || 'Sem categoria'}</span>
+                <p class="text-muted mt-2 mb-3" style="font-size: 0.9em; max-height: 60px; overflow: hidden;">
+                    ${project.resumo || 'Sem resumo'}
+                </p>
+                <small class="text-muted d-block mb-3">Criado em: ${dateStr}</small>
+                <div class="d-flex gap-2">
+                    <a href="/guest/projetos/novo?id=${project.id}" class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <button class="btn btn-sm btn-success" onclick="exportPDF('${project.id}')">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteProject('${project.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+            grid.appendChild(col);
+        });
+    }
+
+    function deleteProject(projectId) {
+        if (!confirm('Deletar este projeto?')) return;
+
+        const projectsJson = localStorage.getItem('apbia_guest_projects');
+        let projects = projectsJson ? JSON.parse(projectsJson) : [];
+        projects = projects.filter(p => p.id !== projectId);
+        localStorage.setItem('apbia_guest_projects', JSON.stringify(projects));
+
+        APBIA.showNotification('Projeto deletado', 'success');
+        loadGuestProjects();
+    }
+
+    async function exportPDF(projectId) {
+        const projectsJson = localStorage.getItem('apbia_guest_projects');
+        const projects = projectsJson ? JSON.parse(projectsJson) : [];
+        const project = projects.find(p => p.id === projectId);
+
+        if (!project) {
+            APBIA.showNotification('Projeto não encontrado', 'error');
+            return;
+        }
+
+        const apelido = localStorage.getItem('apbia_guest_nickname') || 'Anônimo';
+
+        APBIA.showLoadingOverlay('Gerando PDF...');
+
+        try {
+            const response = await fetch('/guest/projetos/gerar-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ projeto: project, apelido: apelido })
+            });
+
+            if (!response.ok) throw new Error('Erro ao gerar PDF');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Plano_Pesquisa_${project.nome.replace(/ /g, '_')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            APBIA.hideLoadingOverlay();
+            APBIA.showNotification('PDF baixado com sucesso!', 'success');
+
+        } catch (error) {
+            APBIA.hideLoadingOverlay();
+            APBIA.showNotification('Erro ao gerar PDF', 'error');
+        }
+    }
+</script>
+{% endblock %}

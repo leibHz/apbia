@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard do Orientador - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="orientador-container">
+    <div class="orientador-header">
+        <h2>
+            <i class="fas fa-chalkboard-teacher"></i> Dashboard do Orientador
+        </h2>
+        <p>Acompanhe seus orientados e seus projetos</p>
+    </div>
+    
+    <!-- Estatísticas -->
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h6>Total de Orientados</h6>
+                    <h2>{{ stats.total_orientados }}</h2>
+                </div>
+                <i class="fas fa-users stat-card-icon primary"></i>
+            </div>
+        </div>
+        
+        <div class="stat-card success">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h6>Total de Conversas</h6>
+                    <h2>{{ stats.total_chats }}</h2>
+                </div>
+                <i class="fas fa-comments stat-card-icon success"></i>
+            </div>
+        </div>
+        
+        <div class="stat-card info">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h6>Chats com Notas</h6>
+                    <h2>{{ stats.chats_com_notas }}</h2>
+                </div>
+                <i class="fas fa-sticky-note stat-card-icon info"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de Orientados -->
+    <div class="orientados-card">
+        <div class="orientados-card-header">
+            <i class="fas fa-user-graduate"></i> Meus Orientados
+        </div>
+        <div>
+            {% if orientados %}
+            <div class="table-wrapper">
+                <table class="orientados-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Apelido</th>
+                            <th>Email</th>
+                            <th>BP</th>
+                            <th>Chats</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for orientado in orientados %}
+                        <tr>
+                            <td>
+                                <strong>{{ orientado.nome_completo }}</strong>
+                            </td>
+                            <td>
+                                {% if orientado.apelido %}
+                                <span class="badge secondary">
+                                    <i class="fas fa-smile"></i> {{ orientado.apelido }}
+                                </span>
+                                {% else %}
+                                <span style="color: var(--text-muted);">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ orientado.email }}</td>
+                            <td><code style="background: var(--bg-darker); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-color);">{{ orientado.numero_inscricao }}</code></td>
+                            <td>
+                                <span class="badge success">
+                                    {{ orientado.chats|length }} conversas
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('orientador.visualizar_orientado', participante_id=orientado.id) }}" 
+                                   class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Visualizar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h5>Nenhum orientado encontrado</h5>
+                <p>
+                    Os orientados aparecerão aqui quando você for associado a projetos.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

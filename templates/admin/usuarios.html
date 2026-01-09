@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Usuários - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="usuarios-container">
+    <div class="usuarios-header">
+        <div class="usuarios-header-info">
+            <h2>
+                <i class="fas fa-users"></i> Gerenciar Usuários
+            </h2>
+            <p>Total: {{ usuarios|length }} usuários cadastrados</p>
+        </div>
+        <button class="btn btn-salvar" onclick="document.getElementById('addUserModal').classList.add('active')">
+            <i class="fas fa-user-plus"></i> Adicionar Usuário
+        </button>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filtros-container">
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" 
+                   class="search-input" 
+                   id="searchInput" 
+                   placeholder="Buscar por nome, email ou BP...">
+        </div>
+        <select class="filter-select" id="filterTipo">
+            <option value="">Todos os tipos</option>
+            <option value="1">Administrador</option>
+            <option value="2">Participante</option>
+            <option value="3">Orientador</option>
+            <option value="4">Visitante</option>
+        </select>
+    </div>
+    
+    <!-- Tabela de Usuários -->
+    <div class="table-card">
+        <div class="table-card-body">
+            <div class="table-responsive">
+                <table class="users-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Tipo</th>
+                            <th>BP</th>
+                            <th>Data Criação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr data-user-id="{{ usuario.id }}">
+                            <td>{{ usuario.id }}</td>
+                            <td>
+                                <strong class="user-name">{{ usuario.nome_completo }}</strong>
+                            </td>
+                            <td>{{ usuario.email }}</td>
+                            <td>
+                                {% if usuario.tipo_usuario_id == 1 %}
+                                <span class="badge danger">
+                                    <i class="fas fa-shield-alt"></i> Admin
+                                </span>
+                                {% elif usuario.tipo_usuario_id == 2 %}
+                                <span class="badge success">
+                                    <i class="fas fa-user-graduate"></i> Participante
+                                </span>
+                                {% elif usuario.tipo_usuario_id == 3 %}
+                                <span class="badge info">
+                                    <i class="fas fa-chalkboard-teacher"></i> Orientador
+                                </span>
+                                {% else %}
+                                <span class="badge secondary">
+                                    <i class="fas fa-user"></i> Visitante
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if usuario.numero_inscricao %}
+                                <code class="bp-code">{{ usuario.numero_inscricao }}</code>
+                                {% else %}
+                                <span style="color: var(--text-muted);">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ usuario.data_criacao.strftime('%d/%m/%Y %H:%M') if usuario.data_criacao else '-' }}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action edit edit-user" 
+                                            data-user-id="{{ usuario.id }}"
+                                            title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% if usuario.id != current_user.id %}
+                                    <button class="btn-action delete delete-user" 
+                                            data-user-id="{{ usuario.id }}"
+                                            data-confirm="Deseja realmente deletar este usuário?"
+                                            title="Deletar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Adicionar Usuário -->
+<div class="modal-overlay" id="addUserModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5>
+                <i class="fas fa-user-plus"></i> Adicionar Novo Usuário
+            </h5>
+            <button class="modal-close" onclick="document.getElementById('addUserModal').classList.remove('active')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="addUserForm">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i> Nome Completo *
+                    </label>
+                    <input type="text" class="form-control" name="nome_completo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-envelope"></i> Email *
+                    </label>
+                    <input type="email" class="form-control" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i> Senha *
+                    </label>
+                    <input type="password" class="form-control" name="senha" required minlength="6">
+                    <small class="form-text">Mínimo 6 caracteres</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user-tag"></i> Tipo de Usuário *
+                    </label>
+                    <select class="form-select" name="tipo_usuario_id" required>
+                        {% for tipo in tipos_usuario %}
+                        <option value="{{ tipo.id }}">{{ tipo.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-id-card"></i> BP (Número de Inscrição)
+                        <span class="text-danger" id="addBpRequired" style="display:none;">*</span>
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="numero_inscricao" 
+                           id="addBP"
+                           maxlength="12"
+                           placeholder="BP12345678X"
+                           style="text-transform: uppercase;">
+                    <small class="form-text" id="addBpHelp">
+                        Obrigatório para participantes e orientadores. Formato: BP12345678X
+                    </small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-cancelar" onclick="document.getElementById('addUserModal').classList.remove('active')">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="button" class="btn btn-salvar" id="saveUserBtn">
+                <i class="fas fa-save"></i> Salvar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Usuário -->
+<div class="modal-overlay" id="editUserModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5>
+                <i class="fas fa-edit"></i> Editar Usuário
+            </h5>
+            <button class="modal-close" onclick="document.getElementById('editUserModal').classList.remove('active')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                
+                <div class="form-group">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" class="form-control" name="nome_completo" id="editNome">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" id="editEmail">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Tipo de Usuário</label>
+                    <select class="form-select" name="tipo_usuario_id" id="editTipo">
+                        {% for tipo in tipos_usuario %}
+                        <option value="{{ tipo.id }}">{{ tipo.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">BP</label>
+                    <input type="text" class="form-control" name="numero_inscricao" id="editBP" maxlength="12" style="text-transform: uppercase;">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-cancelar" onclick="document.getElementById('editUserModal').classList.remove('active')">Cancelar</button>
+            <button type="button" class="btn btn-salvar" id="updateUserBtn">
+                <i class="fas fa-save"></i> Atualizar
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin_usuarios.js') }}"></script>
+{% endblock %}

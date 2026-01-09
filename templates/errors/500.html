@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Erro no servidor - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <i class="fas fa-exclamation-triangle error-icon error-icon-danger"></i>
+        <h1 class="error-code error-code-danger">500</h1>
+        <h3 class="error-title">Erro no Servidor</h3>
+        <p class="error-message">
+            Algo deu errado no servidor. Nossa equipe já foi notificada e está trabalhando para resolver o problema.
+        </p>
+        
+        <div class="error-alert">
+            <i class="fas fa-lightbulb"></i>
+            <strong>Sugestões:</strong>
+            <ul class="error-list">
+                <li>Tente recarregar a página</li>
+                <li>Limpe o cache do navegador</li>
+                <li>Aguarde alguns minutos e tente novamente</li>
+            </ul>
+        </div>
+        
+        <div class="error-actions">
+            <button onclick="location.reload()" class="btn btn-primary">
+                <i class="fas fa-sync"></i> Recarregar Página
+            </button>
+            
+            <a href="{{ url_for('index') }}" class="btn btn-outline">
+                <i class="fas fa-home"></i> Página Inicial
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

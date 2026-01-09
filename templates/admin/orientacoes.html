@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Orientações - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="usuarios-container">
+    <div class="usuarios-header">
+        <div class="usuarios-header-info">
+            <h2>
+                <i class="fas fa-user-friends"></i> Gerenciar Orientações
+            </h2>
+            <p>Associe orientadores aos seus orientados e projetos</p>
+        </div>
+        <button class="btn btn-salvar" onclick="showModal('addOrientacaoModal')">
+            <i class="fas fa-plus"></i> Nova Orientação
+        </button>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filtros-container">
+        <select class="filter-select" id="filtroOrientador">
+            <option value="">Todos os Orientadores</option>
+            {% for orientador in orientadores %}
+            <option value="{{ orientador.id }}">{{ orientador.nome_completo }}</option>
+            {% endfor %}
+        </select>
+        <select class="filter-select" id="filtroProjeto">
+            <option value="">Todos os Projetos</option>
+            {% for projeto in projetos %}
+            <option value="{{ projeto.id }}">{{ projeto.nome }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <!-- Tabela de Orientações -->
+    <div class="table-card">
+        <div class="table-card-body">
+            <div class="table-responsive">
+                <table class="users-table" id="tabelaOrientacoes">
+                    <thead>
+                        <tr>
+                            <th>Orientador</th>
+                            <th>Participante</th>
+                            <th>Projeto</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for orientacao in orientacoes %}
+                        <tr data-orientacao-id="{{ orientacao.id }}">
+                            <td>
+                                <strong>{{ orientacao.orientador_nome }}</strong>
+                                <br>
+                                <small style="color: var(--text-muted);">{{ orientacao.orientador_email }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ orientacao.participante_nome }}</strong>
+                                <br>
+                                <small style="color: var(--text-muted);">{{ orientacao.participante_bp }}</small>
+                            </td>
+                            <td>
+                                <span class="badge success">{{ orientacao.projeto_categoria }}</span>
+                                <br>
+                                {{ orientacao.projeto_nome }}
+                            </td>
+                            <td>
+                                <span class="badge success">Ativa</span>
+                            </td>
+                            <td>
+                                <button class="btn-action delete remover-orientacao" 
+                                        data-orientador-id="{{ orientacao.orientador_id }}"
+                                        data-projeto-id="{{ orientacao.projeto_id }}"
+                                        title="Remover orientação">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if not orientacoes %}
+            <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <h5 style="color: var(--text-primary);">Nenhuma orientação cadastrada</h5>
+                <p>Clique em "Nova Orientação" para começar</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Nova Orientação -->
+<div class="modal-overlay" id="addOrientacaoModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5>
+                <i class="fas fa-plus"></i> Nova Orientação
+            </h5>
+            <button class="modal-close" onclick="hideModal('addOrientacaoModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="formNovaOrientacao">
+                <!-- Passo 1: Selecionar Projeto -->
+                <div style="margin-bottom: 2rem;" id="passo1">
+                    <h6 style="color: var(--text-primary); margin-bottom: 1rem;">
+                        <i class="fas fa-flask"></i> 1. Selecione o Projeto
+                    </h6>
+                    <select class="form-select" id="projetoSelect" required>
+                        <option value="">Escolha um projeto...</option>
+                        {% for projeto in projetos %}
+                        <option value="{{ projeto.id }}" 
+                                data-categoria="{{ projeto.categoria }}"
+                                data-nome="{{ projeto.nome }}">
+                            [{{ projeto.categoria }}] {{ projeto.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    
+                    <div class="projeto-info-box" id="projetoInfo" style="display: none;">
+                        <strong>Projeto selecionado:</strong>
+                        <p id="projetoNome"></p>
+                        <small id="projetoCategoria"></small>
+                    </div>
+                </div>
+                
+                <!-- Passo 2: Selecionar Orientador -->
+                <div class="passo-hidden" id="passo2" style="margin-bottom: 2rem;">
+                    <h6 style="color: var(--text-primary); margin-bottom: 1rem;">
+                        <i class="fas fa-chalkboard-teacher"></i> 2. Selecione o Orientador
+                    </h6>
+                    <select class="form-select" id="orientadorSelect" required>
+                        <option value="">Escolha um orientador...</option>
+                        {% for orientador in orientadores %}
+                        <option value="{{ orientador.id }}">
+                            {{ orientador.nome_completo }} ({{ orientador.email }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Passo 3: Participantes do Projeto -->
+                <div class="passo-hidden" id="passo3">
+                    <h6 style="color: var(--text-primary); margin-bottom: 1rem;">
+                        <i class="fas fa-users"></i> 3. Participantes do Projeto
+                    </h6>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                        Participantes que já estão neste projeto:
+                    </p>
+                    
+                    <div id="participantesLista">
+                        <!-- Preenchido via JS -->
+                    </div>
+                    
+                    <div style="background: rgba(252, 211, 77, 0.15); border: 2px solid var(--warning); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                        <i class="fas fa-info-circle" style="color: var(--warning);"></i>
+                        <strong style="color: var(--text-primary);">Nota:</strong>
+                        <span style="color: var(--text-secondary);">
+                            A associação orientador-participante é feita através do projeto.
+                            Todos os participantes do projeto ficarão sob orientação do orientador escolhido.
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-cancelar" onclick="hideModal('addOrientacaoModal')">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="button" class="btn btn-salvar" id="btnConfirmarOrientacao">
+                <i class="fas fa-check"></i> Confirmar Orientação
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+function hideModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin_orientacoes.js') }}"></script>
+{% endblock %}
