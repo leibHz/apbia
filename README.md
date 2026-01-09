@@ -262,7 +262,11 @@ O sistema inclui monitoramento completo do consumo da API:
 
 ## 🎨 Screenshots
 
-> *Em breve: Capturas de tela da interface*
+### Página Inicial
+![Página Inicial do APBIA](static/img/screenshot_home.png)
+
+### Interface do Chat
+![Interface do Chat com IA](static/img/screenshot_chat.png)
 
 ---
 
