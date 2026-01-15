@@ -318,8 +318,9 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - 🔒 **LGPD Compliance**: Página de política de privacidade
 - ⚠️ **Limite Bragantec**: 1x por chat para todos os usuários
 - 🎨 **UI**: Banner verde para modo anônimo
+  ⚠️**AVISO** isso está em fase beta, erros podem ocorrer, use o modo login por enquanto 
 
-### v1.0.0 - Janeiro/2026
+### v1.0.0 - dezembro/2025
 - 🚀 Lançamento inicial
 - 💬 Chat com Gemini 2.5 Flash
 - 👥 Sistema de usuários (Admin, Orientador, Participante)
