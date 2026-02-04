@@ -12,7 +12,6 @@ from controllers.chat_controller import chat_bp
 from controllers.admin_controller import admin_bp
 from controllers.project_controller import project_bp
 from controllers.orientador_controller import orientador_bp
-from controllers.guest_controller import guest_bp
 
 # Inicializa aplicação
 app = Flask(__name__)
@@ -65,9 +64,6 @@ logger.debug("✅ project_bp registrado em /projetos")
 app.register_blueprint(orientador_bp, url_prefix='/orientador')
 logger.debug("✅ orientador_bp registrado em /orientador")
 
-app.register_blueprint(guest_bp, url_prefix='/guest')
-logger.debug("✅ guest_bp registrado em /guest")
-
 @app.before_request
 def check_session_validity():
     """Verifica validade da sessão antes de cada request"""
@@ -110,11 +106,6 @@ def index():
     """Página inicial"""
     logger.debug("📄 Renderizando página inicial")
     return render_template('index.html')
-
-@app.route('/privacidade')
-def privacidade():
-    """Página de política de privacidade (LGPD)"""
-    return render_template('privacidade.html')
 
 # Tratamento de erros
 @app.errorhandler(404)

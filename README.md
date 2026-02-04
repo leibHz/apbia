@@ -105,7 +105,6 @@ Acesse: `http://localhost:5000`
 | **Administrador** | Gerencia todo o sistema, usuários, configurações e estatísticas |
 | **Orientador** | Acompanha orientados, visualiza chats, adiciona notas e observações |
 | **Participante** | Desenvolve projetos com auxílio da IA |
-| **Anônimo (Guest)** | Acessa chat e projetos sem cadastro, dados salvos no navegador |
 
 ### 🤖 Chat com IA
 
@@ -139,17 +138,6 @@ Acesse: `http://localhost:5000`
 - Visualização de chats dos orientados
 - Sistema de notas por mensagem
 - Observações gerais por participante
-
-### 🔓 Modo Anônimo (Guest)
-
-- Acesso sem cadastro via botão "Entrar Anonimamente"
-- Chat completo com IA (mesmas funcionalidades do participante)
-- Projetos salvos no **localStorage** do navegador
-- Geração de ideias e autocompletar com IA
-- Exportação de projetos para PDF
-- **Limite Bragantec**: 1x por chat (igual ao modo normal)
-- Conformidade com LGPD (política de privacidade integrada)
-- Dados podem ser limpos a qualquer momento
 
 ---
 
@@ -188,7 +176,6 @@ apbia/
 │   ├── admin_controller.py     # Painel administrativo
 │   ├── auth_controller.py      # Autenticação (login/logout)
 │   ├── chat_controller.py      # Sistema de chat com IA
-│   ├── guest_controller.py     # Modo anônimo (guest)
 │   ├── orientador_controller.py # Área do orientador
 │   └── project_controller.py   # Gestão de projetos
 │
@@ -215,18 +202,13 @@ apbia/
 │   ├── index.html              # Página inicial
 │   ├── login.html              # Tela de login
 │   ├── chat.html               # Interface do chat
-│   ├── guest_chat.html         # Chat modo anônimo
-│   ├── privacidade.html        # Política de privacidade (LGPD)
 │   ├── admin/                  # Templates administrativos
 │   ├── orientador/             # Templates do orientador
-│   ├── projetos/               # Templates de projetos
-│   └── guest_projetos/         # Projetos modo anônimo
+│   └── projetos/               # Templates de projetos
 │
 ├── static/                 # Arquivos estáticos
 │   ├── css/                    # Estilos CSS
 │   ├── js/                     # Scripts JavaScript
-│   │   ├── guest_chat.js       # JS do chat anônimo
-│   │   └── guest_projetos.js   # JS dos projetos anônimos
 │   └── img/                    # Imagens
 │
 └── context_files/          # Contexto histórico da Bragantec
@@ -262,11 +244,7 @@ O sistema inclui monitoramento completo do consumo da API:
 
 ## 🎨 Screenshots
 
-### Página Inicial
-![Página Inicial do APBIA](static/img/screenshot_home.png)
-
-### Interface do Chat
-![Interface do Chat com IA](static/img/screenshot_chat.png)
+> *Em breve: Capturas de tela da interface*
 
 ---
 
@@ -303,28 +281,6 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - Comunidade Bragantec
 - Google Gemini API
 - Supabase
-
----
-
-## 📋 Changelog
-
-### v1.1.0 - 08/01/2026
-- ✨ **Modo Anônimo (Guest)**: Acesso completo sem cadastro
-  - Chat com IA igual ao participante
-  - Projetos salvos no localStorage
-  - Geração de ideias e autocompletar com IA
-  - Exportação PDF
-  - Botão verde no login: "Entrar Anonimamente"
-- 🔒 **LGPD Compliance**: Página de política de privacidade
-- ⚠️ **Limite Bragantec**: 1x por chat para todos os usuários
-- 🎨 **UI**: Banner verde para modo anônimo
-
-### v1.0.0 - Janeiro/2026
-- 🚀 Lançamento inicial
-- 💬 Chat com Gemini 2.5 Flash
-- 👥 Sistema de usuários (Admin, Orientador, Participante)
-- 📁 Gestão completa de projetos
-- 📊 Painel administrativo com estatísticas
 
 ---
 

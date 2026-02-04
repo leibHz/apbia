@@ -199,11 +199,6 @@ async function handleSendMessage(e) {
                 );
             }
 
-            // ✅ LIMITE BRAGANTEC: Marca como usado após enviar com sucesso
-            if (usarContextoBragantec && data.chat_id) {
-                markBragantecUsed(data.chat_id);
-            }
-
             // Adiciona resposta da IA
             addMessageToChat(
                 'assistant',
@@ -680,9 +675,6 @@ async function loadChat(chatId) {
             });
             document.querySelector(`[data-chat-id="${chatId}"]`)?.classList.add('active');
 
-            // ✅ LIMITE BRAGANTEC: Verifica se já foi usado neste chat
-            checkBragantecLimit(chatId);
-
         } else {
             showError(data.message || 'Erro ao carregar histórico');
         }
@@ -692,38 +684,6 @@ async function loadChat(chatId) {
         showError('Erro ao carregar histórico');
         console.error('Erro:', error);
     }
-}
-
-// ✅ LIMITE BRAGANTEC (1x por chat) - Funções auxiliares
-function checkBragantecLimit(chatId) {
-    const used = localStorage.getItem(`apbia_bragantec_used_${chatId}`) === 'true';
-    const toggle = document.getElementById('bragantecToggle');
-
-    if (toggle) {
-        if (used) {
-            toggle.disabled = true;
-            toggle.checked = false;
-            usarContextoBragantec = false;
-            APBIA.showNotification('⚠️ Modo Bragantec já foi usado neste chat (limite: 1x)', 'info');
-        } else {
-            toggle.disabled = false;
-        }
-        updateBragantecIndicator();
-    }
-}
-
-function markBragantecUsed(chatId) {
-    localStorage.setItem(`apbia_bragantec_used_${chatId}`, 'true');
-
-    const toggle = document.getElementById('bragantecToggle');
-    if (toggle) {
-        toggle.disabled = true;
-        toggle.checked = false;
-        usarContextoBragantec = false;
-    }
-
-    updateBragantecIndicator();
-    APBIA.showNotification('⚠️ Modo Bragantec usado! Limite: 1x por chat', 'warning');
 }
 
 function showChatNotes(notas) {
