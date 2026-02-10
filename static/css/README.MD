@@ -1,0 +1,1 @@
+o JS foi gerado com auxilo de ia por nao ser o foco do projeto, o css tambem foi gerado com auxilio de ia

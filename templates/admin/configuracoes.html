@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="config-container">
+    <div class="config-header">
+        <h2>
+            <i class="fas fa-cog"></i> Configurações do Sistema
+        </h2>
+        <p>Gerencie as configurações globais do APBIA</p>
+    </div>
+    
+    <div class="config-grid">
+        <!-- Status da IA -->
+        <div class="config-card">
+            <div class="config-card-header primary">
+                <i class="fas fa-robot"></i> Status da IA
+            </div>
+            <div class="config-card-body">
+                <div class="ia-status-info">
+                    <div class="ia-status-text">
+                        <h5>Sistema de IA</h5>
+                        <p>
+                            Status atual: 
+                            <strong class="{% if ia_status %}text-success{% else %}text-danger{% endif %}">
+                                {{ 'ATIVA' if ia_status else 'OFFLINE' }}
+                            </strong>
+                        </p>
+                    </div>
+                    <label class="switch-toggle">
+                        <input type="checkbox" id="iaStatusSwitch" {{ 'checked' if ia_status else '' }}>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+                
+                <hr style="border-color: var(--border-color); margin: 1rem 0;">
+                
+                <div class="alert-info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Sobre:</strong>
+                    <p>
+                        Quando a IA está offline, os usuários não conseguem enviar mensagens.
+                        Use esta opção para manutenção ou emergências.
+                    </p>
+                </div>
+                
+                <button class="btn-tool primary" style="width: 100%;" id="toggleIABtn">
+                    <i class="fas fa-power-off"></i> 
+                    {{ 'Desativar IA' if ia_status else 'Ativar IA' }}
+                </button>
+            </div>
+        </div>
+        
+        <!-- Informações do Sistema -->
+        <div class="config-card">
+            <div class="config-card-header info">
+                <i class="fas fa-info-circle"></i> Informações do Sistema
+            </div>
+            <div class="config-card-body">
+                <table class="info-table">
+                    <tbody>
+                        <tr>
+                            <td><i class="fas fa-code"></i> Versão:</td>
+                            <td><strong>1.0.0</strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-robot"></i> Modelo IA:</td>
+                            <td><strong>Gemini 2.5 Flash</strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-database"></i> Banco de Dados:</td>
+                            <td><strong>PostgreSQL (Supabase)</strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-server"></i> Backend:</td>
+                            <td><strong>Python Flask</strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-palette"></i> Frontend:</td>
+                            <td><strong>CSS Puro</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Arquivos de Contexto -->
+        <div class="config-card">
+            <div class="config-card-header success">
+                <i class="fas fa-file-alt"></i> Arquivos de Contexto
+            </div>
+            <div class="config-card-body">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Arquivos TXT que a IA usa como contexto sobre a Bragantec
+                </p>
+                
+                <ul class="files-list">
+                    {% if context_files %}
+                        {% for file in context_files %}
+                        <li class="file-item">
+                            <div class="file-info">
+                                <i class="fas fa-file-alt"></i>
+                                <div class="file-details">
+                                    <span>{{ file.name }}</span>
+                                    <small>{{ file.size }}</small>
+                                </div>
+                            </div>
+                            <div class="file-badges">
+                                <span class="badge success">Carregado</span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Nenhum arquivo de contexto encontrado</p>
+                        </li>
+                    {% endif %}
+                </ul>
+                
+                <div class="alert-info-box" style="margin-top: 1rem; margin-bottom: 0;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <small>
+                        Para adicionar novos arquivos, coloque-os na pasta 
+                        <code>context_files/</code> e reinicie o servidor.
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ferramentas de Manutenção -->
+        <div class="config-card">
+            <div class="config-card-header warning">
+                <i class="fas fa-tools"></i> Ferramentas de Manutenção
+            </div>
+            <div class="config-card-body">
+                <h6 style="color: var(--text-primary); margin-bottom: 1rem;">Diagnósticos e Testes</h6>
+
+                <div class="tools-grid">
+                    <button class="btn-tool primary" id="btnExportStats">
+                        <i class="fas fa-download"></i> Exportar Estatísticas (JSON)
+                    </button>
+
+                    <button class="btn-tool success" id="btnTestGemini">
+                        <i class="fas fa-robot"></i> Testar Conexão Gemini
+                    </button>
+
+                    <button class="btn-tool secondary" id="btnTestDB">
+                        <i class="fas fa-database"></i> Testar Conexão Banco de Dados
+                    </button>
+                </div>
+
+                <div class="alert-info-box" style="margin-top: 1rem; margin-bottom: 0;">
+                    <i class="fas fa-info-circle"></i>
+                    <small>Use estas ferramentas para verificar o status do sistema</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estatísticas de Uso -->
+        <div class="config-card" style="grid-column: 1 / -1;">
+            <div class="config-card-header secondary">
+                <i class="fas fa-chart-line"></i> Estatísticas de Uso (Tempo Real)
+            </div>
+            <div class="config-card-body">
+                <div class="stats-realtime">
+                    <div class="stat-item">
+                        <i class="fas fa-comments primary"></i>
+                        <h4 id="stat-conversas">-</h4>
+                        <small>Conversas Totais</small>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-paper-plane success"></i>
+                        <h4 id="stat-mensagens">-</h4>
+                        <small>Mensagens Enviadas</small>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-users info"></i>
+                        <h4 id="stat-usuarios">-</h4>
+                        <small>Usuários Ativos</small>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-flask warning"></i>
+                        <h4 id="stat-projetos">-</h4>
+                        <small>Projetos Criados</small>
+                    </div>
+                </div>
+
+                <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+
+                <!-- Estatísticas Gemini -->
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <h6 style="color: var(--text-primary);">
+                        <i class="fas fa-robot"></i> Uso do Gemini (Últimas 24h)
+                    </h6>
+                </div>
+                
+                <div class="gemini-stats">
+                    <div class="gemini-stat">
+                        <i class="fas fa-bolt primary"></i>
+                        <strong id="stat-requests-24h">-</strong>
+                        <small>Requisições</small>
+                    </div>
+                    <div class="gemini-stat">
+                        <i class="fas fa-coins warning"></i>
+                        <strong id="stat-tokens-24h">-</strong>
+                        <small>Tokens Processados</small>
+                    </div>
+                    <div class="gemini-stat">
+                        <i class="fas fa-user success"></i>
+                        <strong id="stat-unique-users">-</strong>
+                        <small>Usuários Únicos</small>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{{ url_for('admin.gemini_stats_page') }}" class="btn-tool primary" style="width: auto;">
+                        <i class="fas fa-chart-bar"></i> Ver Estatísticas Detalhadas
+                    </a>
+                    <button class="btn-tool secondary" id="refreshStats" style="width: auto;">
+                        <i class="fas fa-sync"></i> Atualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin_config.js') }}"></script>
+{% endblock %}

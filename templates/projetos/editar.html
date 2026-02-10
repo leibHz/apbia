@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Projeto - APBIA{% endblock %}
+
+{% block content %}
+<div class="criar-container">
+    <!-- Header -->
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('project.index') }}">Projetos</a></li>
+            <li class="breadcrumb-item">Editar: {{ projeto.nome }}</li>
+        </ol>
+    </nav>
+    
+    <div class="criar-header">
+        <h2><i class="fas fa-edit"></i> Editar Projeto</h2>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <span class="badge badge-{{ 'secondary' if projeto.status == 'rascunho' else 'primary' if projeto.status == 'em_andamento' else 'success' }}" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                Status: {{ projeto.status|replace('_', ' ')|title }}
+            </span>
+            {% if projeto.gerado_por_ia %}
+                <div class="badge-ia badge-ia-destaque">
+                    <i class="fas fa-robot"></i>
+                    <span>Este projeto foi criado com auxílio da IA</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="projeto-info">
+        <div class="info-item">
+            <label>Criador Original:</label>
+            <span>{{ criador.nome_completo if criador else 'Não informado' }}</span>
+        </div>
+    </div>
+    
+    <!-- Formulário -->
+    <form id="formProjeto">
+        <input type="hidden" id="projeto_id" value="{{ projeto.id }}">
+        
+        <!-- Informações Básicas -->
+        <div class="campo-grupo">
+            <h4><i class="fas fa-info-circle"></i> Informações Básicas</h4>
+            
+            <div class="form-group">
+                <label class="form-label">Título do Projeto *</label>
+                <input type="text" class="form-control" id="nome" name="nome" required
+                       value="{{ projeto.nome }}"
+                       placeholder="Ex: Sistema de Irrigação Inteligente com IoT">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Categoria *</label>
+                <select class="form-select" id="categoria" name="categoria" required>
+                    <option value="Ciências da Natureza e Exatas" {{ 'selected' if projeto.categoria == 'Ciências da Natureza e Exatas' }}>Ciências da Natureza e Exatas</option>
+                    <option value="Informática" {{ 'selected' if projeto.categoria == 'Informática' }}>Informática</option>
+                    <option value="Ciências Humanas e Linguagens" {{ 'selected' if projeto.categoria == 'Ciências Humanas e Linguagens' }}>Ciências Humanas e Linguagens</option>
+                    <option value="Engenharias" {{ 'selected' if projeto.categoria == 'Engenharias' }}>Engenharias</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Status do Projeto *</label>
+                <select class="form-select" id="status" name="status" required>
+                    <option value="rascunho" {{ 'selected' if projeto.status == 'rascunho' }}>Rascunho</option>
+                    <option value="em_andamento" {{ 'selected' if projeto.status == 'em_andamento' }}>Em Andamento</option>
+                    <option value="concluido" {{ 'selected' if projeto.status == 'concluido' }}>Concluído</option>
+                    <option value="arquivado" {{ 'selected' if projeto.status == 'arquivado' }}>Arquivado</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Ano da Edição</label>
+                <input type="number" class="form-control" id="ano_edicao" name="ano_edicao" 
+                       value="{{ projeto.ano_edicao }}" min="2025" max="2030">
+            </div>
+        </div>
+        
+        <!-- Resumo -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-file-alt"></i> Resumo</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="resumo">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            <textarea class="form-textarea" id="resumo" name="resumo" rows="5" 
+                      maxlength="2000">{{ projeto.resumo or '' }}</textarea>
+            <div class="char-counter">
+                <small class="form-text">Máximo 2000 caracteres</small>
+                <small id="resumo-count" class="form-text">{{ (projeto.resumo|length) if projeto.resumo else 0 }}/2000</small>
+            </div>
+        </div>
+        
+        <!-- Palavras-chave -->
+        <div class="campo-grupo">
+            <h5><i class="fas fa-tags"></i> Palavras-Chave</h5>
+            <input type="text" class="form-control" id="palavras_chave" name="palavras_chave"
+                   value="{{ projeto.palavras_chave or '' }}">
+        </div>
+        
+        <!-- Introdução -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-book-open"></i> Introdução</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="introducao">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            <textarea class="form-textarea" id="introducao" name="introducao" rows="8">{{ projeto.introducao or '' }}</textarea>
+        </div>
+        
+        <!-- Objetivos -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-bullseye"></i> Objetivos</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="objetivos">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Objetivo Geral</label>
+                <textarea class="form-textarea" id="objetivo_geral" name="objetivo_geral" rows="3">{{ projeto.objetivo_geral or '' }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Objetivos Específicos</label>
+                <div id="objetivos-especificos-container" class="objetivos-list">
+                    {% if projeto.objetivos_especificos %}
+                        {% for objetivo in projeto.objetivos_especificos %}
+                        <div class="objetivo-item">
+                            <span>{{ loop.index }}.</span>
+                            <input type="text" class="form-control objetivo-especifico" 
+                                   value="{{ objetivo }}">
+                            <button type="button" class="btn-remover-objetivo">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="objetivo-item">
+                            <span>1.</span>
+                            <input type="text" class="form-control objetivo-especifico" 
+                                   placeholder="Primeiro objetivo específico...">
+                            <button type="button" class="btn-remover-objetivo">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="button" class="btn-adicionar" id="addObjetivo">
+                    <i class="fas fa-plus"></i> Adicionar Objetivo
+                </button>
+            </div>
+        </div>
+        
+        <!-- Metodologia -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-microscope"></i> Metodologia</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="metodologia">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            <textarea class="form-textarea" id="metodologia" name="metodologia" rows="8">{{ projeto.metodologia or '' }}</textarea>
+        </div>
+        
+        <!-- Cronograma -->
+        <div class="campo-grupo">
+            <h5><i class="fas fa-calendar-alt"></i> Cronograma</h5>
+            <div class="table-responsive">
+                <table class="cronograma-table" id="cronogramaTable">
+                    <thead>
+                        <tr>
+                            <th>Etapa</th>
+                            <th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th>
+                            <th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cronogramaBody">
+                        {% if projeto.cronograma %}
+                            {% for etapa in projeto.cronograma %}
+                            <tr>
+                                <td><input type="text" value="{{ etapa.etapa }}"></td>
+                                {% set meses = ['Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov'] %}
+                                {% for mes in meses %}
+                                <td><input type="checkbox" {{ 'checked' if mes in etapa.meses }}></td>
+                                {% endfor %}
+                                <td>
+                                    <button type="button" class="btn-remover-etapa">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td><input type="text" placeholder="Nova etapa"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td><input type="checkbox"></td>
+                            <td>
+                                <button type="button" class="btn-remover-etapa">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" class="btn-adicionar" id="addEtapa">
+                <i class="fas fa-plus"></i> Adicionar Etapa
+            </button>
+        </div>
+        
+        <!-- Resultados Esperados -->
+        <div class="campo-grupo">
+            <div class="campo-header">
+                <h5><i class="fas fa-chart-line"></i> Resultados Esperados</h5>
+                <button type="button" class="btn-ia-autocompletar" data-campo="resultados_esperados">
+                    <i class="fas fa-robot"></i> IA Autocompletar
+                </button>
+            </div>
+            <textarea class="form-textarea" id="resultados_esperados" name="resultados_esperados" rows="6">{{ projeto.resultados_esperados or '' }}</textarea>
+        </div>
+        
+        <!-- Referências -->
+        <div class="campo-grupo">
+            <h5><i class="fas fa-book"></i> Referências Bibliográficas</h5>
+            <textarea class="form-textarea" id="referencias_bibliograficas" 
+                      name="referencias_bibliograficas" rows="6">{{ projeto.referencias_bibliograficas or '' }}</textarea>
+        </div>
+        
+        <!-- Continuação de Projeto Anterior -->
+        <div class="campo-grupo">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eh_continuacao" name="eh_continuacao"
+                       {{ 'checked' if projeto.eh_continuacao }}>
+                <label class="form-check-label" for="eh_continuacao">
+                    <strong>Este projeto é continuação de um projeto anterior?</strong>
+                </label>
+            </div>
+            
+            <div id="continuacao-fields" style="display: {{ 'block' if projeto.eh_continuacao else 'none' }};">
+                <div class="form-group">
+                    <label class="form-label">Título do Projeto Anterior</label>
+                    <input type="text" class="form-control" id="projeto_anterior_titulo" 
+                           value="{{ projeto.projeto_anterior_titulo or '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Resumo do Projeto Anterior</label>
+                    <textarea class="form-textarea" id="projeto_anterior_resumo" rows="4">{{ projeto.projeto_anterior_resumo or '' }}</textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Data de Início</label>
+                        <input type="date" class="form-control" id="projeto_anterior_inicio" 
+                               value="{{ projeto.projeto_anterior_inicio or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Término</label>
+                        <input type="date" class="form-control" id="projeto_anterior_termino" 
+                               value="{{ projeto.projeto_anterior_termino or '' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botões de Ação -->
+        <div class="campo-grupo">
+            <div class="acoes-finais">
+                <a href="{{ url_for('project.index') }}" class="btn btn-cancelar">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-salvar">
+                        <i class="fas fa-save"></i> Salvar Alterações
+                    </button>
+                    <a href="{{ url_for('project.gerar_pdf', projeto_id=projeto.id) }}" 
+                       class="btn" style="background: var(--danger); color: #FFF;">
+                        <i class="fas fa-file-pdf"></i> Gerar PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingIA" style="display: none;">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <h3><i class="fas fa-brain"></i> IA Processando...</h3>
+        <p id="loadingMessage">Gerando conteúdo...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Usa o mesmo script do projetos.js, mas muda a função de salvar
+document.getElementById('formProjeto').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const projetoId = document.getElementById('projeto_id').value;
+    const dados = coletarDadosCompletos();
+    
+    APBIA.showLoadingOverlay('Salvando alterações...');
+    
+    try {
+        const response = await fetch(`/projetos/atualizar/${projetoId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        
+        const data = await response.json();
+        
+        APBIA.hideLoadingOverlay();
+        
+        if (data.success) {
+            APBIA.showNotification('Projeto atualizado com sucesso!', 'success');
+            setTimeout(() => window.location.href = '/projetos', 1500);
+        } else {
+            APBIA.showNotification('Erro: ' + (data.message || ''), 'error');
+        }
+    } catch (error) {
+        APBIA.hideLoadingOverlay();
+        APBIA.showNotification('Erro ao salvar: ' + error.message, 'error');
+    }
+});
+
+// Reutiliza funções do projetos.js
+</script>
+<script src="{{ url_for('static', filename='js/projetos.js') }}"></script>
+{% endblock %}

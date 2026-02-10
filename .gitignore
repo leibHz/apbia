@@ -1,0 +1,103 @@
+# APBIA - .gitignore
+
+# arquivos env
+*.env
+.env.local
+.env.*.local
+.env
+
+# Arquivos Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribuição / Pacotes
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Logs
+*.log
+logs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Banco de Dados Local
+*.db
+*.sqlite
+*.sqlite3
+
+# Flask
+instance/
+.webassets-cache
+
+# Uploads de usuários
+static/uploads/*
+!static/uploads/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Documentação
+docs/_build/
+
+# Arquivos temporários
+*.tmp
+temp/
+tmp/
+
+# Sistema Operacional
+Thumbs.db
+Desktop.ini
+
+# Backups
+*.bak
+*.backup
+
+#cursor
+.cursorignore
+
+#imagens
+*.jpg
+*.jpeg
+
+# pdfs
+*.pdf
+
+#arquivos de texto
+prompt.txt
+naoleia.txt

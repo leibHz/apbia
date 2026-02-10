@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Estatísticas Gemini - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="config-container">
+    <div class="config-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <h2>
+                <i class="fas fa-chart-line"></i> Estatísticas do Gemini API
+            </h2>
+            <p>Monitoramento em tempo real do uso do Gemini 2.5 Flash (FREE Tier)</p>
+        </div>
+        <button class="btn-tool primary" onclick="refreshStats()" style="width: auto;">
+            <i class="fas fa-sync"></i> Atualizar
+        </button>
+    </div>
+    
+    <!-- Limites Globais -->
+    <div class="stats-realtime" style="margin-bottom: 2rem;">
+        <!-- RPM (Requests/Min) -->
+        <div class="stat-item" style="border-color: #007bff;">
+            <i class="fas fa-clock primary"></i>
+            <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 0.5rem;">
+                <div>
+                    <h4 id="rpm-current">0</h4>
+                    <small>de <span id="rpm-limit">10</span></small>
+                </div>
+            </div>
+            <small style="display: block; margin-top: 0.5rem;">RPM (Requests/Min)</small>
+            <div style="width: 100%; height: 5px; background: var(--bg-darker); border-radius: 3px; margin-top: 0.5rem;">
+                <div id="rpm-bar" style="height: 100%; background: #007bff; border-radius: 3px; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <small id="rpm-remaining" style="color: var(--success); display: block; margin-top: 0.25rem;">Disponível: 10</small>
+        </div>
+        
+        <!-- TPM (Tokens/Min) -->
+        <div class="stat-item" style="border-color: var(--info);">
+            <i class="fas fa-coins info"></i>
+            <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 0.5rem;">
+                <div>
+                    <h4 id="tpm-current">0</h4>
+                    <small>de <span id="tpm-limit">250k</span></small>
+                </div>
+            </div>
+            <small style="display: block; margin-top: 0.5rem;">TPM (Tokens/Min)</small>
+            <div style="width: 100%; height: 5px; background: var(--bg-darker); border-radius: 3px; margin-top: 0.5rem;">
+                <div id="tpm-bar" style="height: 100%; background: var(--info); border-radius: 3px; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <small id="tpm-remaining" style="color: var(--success); display: block; margin-top: 0.25rem;">Disponível: 250k</small>
+        </div>
+        
+        <!-- RPD (Requests/Dia) -->
+        <div class="stat-item" style="border-color: var(--success);">
+            <i class="fas fa-calendar-day success"></i>
+            <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 0.5rem;">
+                <div>
+                    <h4 id="rpd-current">0</h4>
+                    <small>de <span id="rpd-limit">250</span></small>
+                </div>
+            </div>
+            <small style="display: block; margin-top: 0.5rem;">RPD (Requests/Dia)</small>
+            <div style="width: 100%; height: 5px; background: var(--bg-darker); border-radius: 3px; margin-top: 0.5rem;">
+                <div id="rpd-bar" style="height: 100%; background: var(--success); border-radius: 3px; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <small id="rpd-remaining" style="color: var(--success); display: block; margin-top: 0.25rem;">Disponível: 250</small>
+        </div>
+        
+        <!-- Google Search -->
+        <div class="stat-item" style="border-color: var(--warning);">
+            <i class="fas fa-search warning"></i>
+            <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 0.5rem;">
+                <div>
+                    <h4 id="search-current">0</h4>
+                    <small>de <span id="search-limit">500</span></small>
+                </div>
+            </div>
+            <small style="display: block; margin-top: 0.5rem;">Google Search/Dia</small>
+            <div style="width: 100%; height: 5px; background: var(--bg-darker); border-radius: 3px; margin-top: 0.5rem;">
+                <div id="search-bar" style="height: 100%; background: var(--warning); border-radius: 3px; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <small id="search-remaining" style="color: var(--success); display: block; margin-top: 0.25rem;">Disponível: 500</small>
+        </div>
+    </div>
+    
+    <!-- Alertas de Limite -->
+    <div id="limit-alerts" style="margin-bottom: 2rem;"></div>
+    
+    <!-- Grid com 2 colunas -->
+    <div class="config-grid">
+        <!-- Informações do Modelo -->
+        <div class="config-card">
+            <div class="config-card-header secondary">
+                <i class="fas fa-info-circle"></i> Informações do Modelo
+            </div>
+            <div class="config-card-body">
+                <table class="info-table">
+                    <tbody>
+                        <tr>
+                            <td><i class="fas fa-robot"></i> Modelo:</td>
+                            <td><strong>gemini-2.5-flash</strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-window-maximize"></i> Context Window:</td>
+                            <td><strong>1.048.576 tokens (1M)</strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-arrow-up"></i> Max Output:</td>
+                            <td><strong>65.536 tokens</strong></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-shield-alt"></i> Safety:</td>
+                            <td><span class="badge danger">DESABILITADO (BLOCK_NONE)</span></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-brain"></i> Thinking Mode:</td>
+                            <td><span class="badge success">ATIVO (Budget Dinâmico)</span></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-search"></i> Google Search:</td>
+                            <td><span class="badge info">DISPONÍVEL (500 RPD)</span></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-code"></i> Code Execution:</td>
+                            <td><span class="badge success">DISPONÍVEL</span></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-dollar-sign"></i> Custo:</td>
+                            <td><strong style="color: var(--success);">GRÁTIS (FREE Tier)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Uso do Sistema -->
+        <div class="config-card">
+            <div class="config-card-header secondary">
+                <i class="fas fa-chart-pie"></i> Uso do Sistema
+            </div>
+            <div class="config-card-body">
+                <!-- RPM -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <small style="color: var(--text-primary);">RPM</small>
+                        <small id="rpm-percent" style="color: var(--text-primary); font-weight: 600;">0%</small>
+                    </div>
+                    <div style="width: 100%; height: 10px; background: var(--bg-darker); border-radius: 5px; overflow: hidden;">
+                        <div id="rpm-percent-bar" style="height: 100%; background: #007bff; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <!-- TPM -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <small style="color: var(--text-primary);">TPM</small>
+                        <small id="tpm-percent" style="color: var(--text-primary); font-weight: 600;">0%</small>
+                    </div>
+                    <div style="width: 100%; height: 10px; background: var(--bg-darker); border-radius: 5px; overflow: hidden;">
+                        <div id="tpm-percent-bar" style="height: 100%; background: var(--info); width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <!-- RPD -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <small style="color: var(--text-primary);">RPD</small>
+                        <small id="rpd-percent" style="color: var(--text-primary); font-weight: 600;">0%</small>
+                    </div>
+                    <div style="width: 100%; height: 10px; background: var(--bg-darker); border-radius: 5px; overflow: hidden;">
+                        <div id="rpd-percent-bar" style="height: 100%; background: var(--success); width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <!-- Google Search -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <small style="color: var(--text-primary);">Google Search</small>
+                        <small id="search-percent" style="color: var(--text-primary); font-weight: 600;">0%</small>
+                    </div>
+                    <div style="width: 100%; height: 10px; background: var(--bg-darker); border-radius: 5px; overflow: hidden;">
+                        <div id="search-percent-bar" style="height: 100%; background: var(--warning); width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Histórico de Uso (full width) -->
+    <div class="config-card" style="margin-top: 2rem;">
+        <div class="config-card-header secondary">
+            <i class="fas fa-history"></i> Histórico de Uso (Hoje)
+        </div>
+        <div class="config-card-body">
+            <canvas id="usageChart" height="100"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/gemini_stats.js') }}"></script>
+{% endblock %}

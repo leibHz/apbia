@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Meu Perfil - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="perfil-container">
+    <div class="perfil-header">
+        <h2>
+            <i class="fas fa-user-circle"></i> Meu Perfil
+        </h2>
+        <p>Gerencie suas informações pessoais</p>
+    </div>
+    
+    <div class="perfil-layout">
+        <!-- Coluna principal -->
+        <div class="perfil-main">
+            <!-- Informações do Perfil -->
+            <div class="perfil-card">
+                <div class="perfil-card-header">
+                    <i class="fas fa-id-card"></i> Informações Pessoais
+                </div>
+                <div class="perfil-card-body">
+                    <form id="formPerfil" class="perfil-form">
+                        <div class="form-group">
+                            <label class="form-label">Nome Completo *</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="nome_completo" 
+                                   name="nome_completo"
+                                   value="{{ usuario.nome_completo }}" 
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-smile"></i> Apelido
+                                <span class="apelido-badge">Novo!</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="apelido" 
+                                   name="apelido"
+                                   value="{{ usuario.apelido or '' }}" 
+                                   maxlength="50"
+                                   placeholder="Como você gostaria de ser chamado pela IA?">
+                            <small class="form-text">
+                                <i class="fas fa-info-circle"></i>
+                                A IA usará este apelido para se referir a você, tornando a conversa mais pessoal! 
+                                <br>
+                                Exemplo: Se seu apelido for "João", a IA dirá "Olá, João!" ao invés de usar seu nome completo.
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="email" 
+                                   name="email"
+                                   value="{{ usuario.email }}" 
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">BP (Número de Inscrição)</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   value="{{ usuario.numero_inscricao or 'Não informado' }}" 
+                                   disabled>
+                            <small class="form-text">
+                                Para alterar o BP, contate o administrador
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Usuário</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   value="{% if usuario.is_admin() %}Administrador{% elif usuario.is_participante() %}Participante{% elif usuario.is_orientador() %}Orientador{% else %}Visitante{% endif %}" 
+                                   disabled>
+                        </div>
+                        
+                        <div class="btn-group-perfil">
+                            <button type="button" class="btn btn-secondary" onclick="location.reload()">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Alterar Senha -->
+            <div class="perfil-card">
+                <div class="perfil-card-header">
+                    <i class="fas fa-lock"></i> Alterar Senha
+                </div>
+                <div class="perfil-card-body">
+                    <form id="formSenha" class="perfil-form">
+                        <div class="form-group">
+                            <label class="form-label">Senha Atual *</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="senha_atual" 
+                                   name="senha_atual"
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Nova Senha *</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="nova_senha" 
+                                   name="nova_senha"
+                                   minlength="6"
+                                   required>
+                            <small class="form-text">Mínimo 6 caracteres</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Confirmar Nova Senha *</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="confirmar_senha" 
+                                   name="confirmar_senha"
+                                   minlength="6"
+                                   required>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-key"></i> Alterar Senha
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="perfil-sidebar">
+            <!-- Informações da Conta -->
+            <div class="perfil-card info-card">
+                <div class="perfil-card-header">
+                    <i class="fas fa-info-circle"></i> Informações da Conta
+                </div>
+                <div class="perfil-card-body">
+                    <p><strong>Data de Cadastro:</strong></p>
+                    <p>
+                        {{ usuario.data_criacao.strftime('%d/%m/%Y') if usuario.data_criacao else 'Não disponível' }}
+                    </p>
+                    
+                    <p><strong>Última Atualização:</strong></p>
+                    <p>
+                        {{ usuario.data_atualizacao.strftime('%d/%m/%Y') if usuario.data_atualizacao else 'Não disponível' }}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Dica sobre Apelidos -->
+            <div class="perfil-card dica-card">
+                <div class="perfil-card-header">
+                    <i class="fas fa-lightbulb"></i> Dica sobre Apelidos
+                </div>
+                <div class="perfil-card-body">
+                    <p><strong>Por que usar um apelido?</strong></p>
+                    <ul>
+                        <li>Torna a conversa mais natural</li>
+                        <li>A IA cria uma conexão mais próxima</li>
+                        <li>Personaliza sua experiência</li>
+                        <li>Você pode escolher como quer ser chamado</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <p><strong>Exemplos:</strong></p>
+                    <small>
+                        João, Maria, Prof. Silva, Dr. Santos, etc.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/perfil.js') }}"></script>
+{% endblock %}

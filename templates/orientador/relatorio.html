@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de {{ orientado.nome_completo }} - APBIA{% endblock %}
+
+{% block content %}
+<div class="relatorio-container">
+    <!-- Header -->
+    <div class="relatorio-header">
+        <div>
+            <h2>
+                <i class="fas fa-chart-bar"></i> Relatório de Acompanhamento
+            </h2>
+            <p>{{ orientado.nome_completo }}</p>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+            <button onclick="exportarPDF()" class="btn btn-danger">
+                <i class="fas fa-file-pdf"></i> Exportar PDF
+            </button>
+            <a href="{{ url_for('orientador.visualizar_orientado', participante_id=orientado.id) }}"
+                class="btn btn-secondary no-print">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Dados do Orientado -->
+    <div class="relatorio-secao">
+        <h3><i class="fas fa-user"></i> Dados do Orientado</h3>
+        <div class="dados-grid">
+            <div class="dado-item">
+                <strong>Nome Completo:</strong>
+                <span>{{ orientado.nome_completo }}</span>
+            </div>
+            <div class="dado-item">
+                <strong>Email:</strong>
+                <span>{{ orientado.email }}</span>
+            </div>
+            <div class="dado-item">
+                <strong>BP:</strong>
+                <span><code>{{ orientado.numero_inscricao }}</code></span>
+            </div>
+            <div class="dado-item">
+                <strong>Data de Cadastro:</strong>
+                <span>{{ orientado.data_criacao.strftime('%d/%m/%Y') if orientado.data_criacao else '-' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas de Uso -->
+    <div class="relatorio-secao">
+        <h3><i class="fas fa-chart-line"></i> Estatísticas de Uso da IA</h3>
+        <div class="stats-grid-relatorio">
+            <div class="stat-box">
+                <i class="fas fa-comments"></i>
+                <h4>{{ stats.total_conversas }}</h4>
+                <small>Conversas com IA</small>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-paper-plane"></i>
+                <h4>{{ stats.total_mensagens }}</h4>
+                <small>Mensagens Enviadas</small>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-flask"></i>
+                <h4>{{ stats.total_projetos }}</h4>
+                <small>Projetos Criados</small>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-search"></i>
+                <h4>{{ stats.uso_google_search }}</h4>
+                <small>Uso de Google Search</small>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-book"></i>
+                <h4>{{ stats.uso_modo_bragantec }}</h4>
+                <small>Uso do Modo Bragantec</small>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-sticky-note"></i>
+                <h4>{{ stats.total_notas_orientador }}</h4>
+                <small>Notas Adicionadas</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projetos -->
+    <div class="relatorio-secao">
+        <h3><i class="fas fa-flask"></i> Projetos ({{ projetos|length }})</h3>
+        {% if projetos %}
+        <div class="projetos-lista-relatorio">
+            {% for projeto in projetos %}
+            <div class="projeto-relatorio-item">
+                <div class="projeto-relatorio-header">
+                    <h5>{{ projeto.nome }}</h5>
+                    <div class="projeto-badges-relatorio">
+                        <span class="badge-relatorio categoria">{{ projeto.categoria }}</span>
+                        <span class="badge-relatorio status">{{ projeto.status|replace('_', ' ')|title }}</span>
+                        {% if projeto.gerado_por_ia %}
+                        <span class="badge-relatorio ia">
+                            <i class="fas fa-robot"></i> Gerado por IA
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if projeto.resumo %}
+                <p class="projeto-resumo-relatorio">
+                    <strong>Resumo:</strong> {{ projeto.resumo }}
+                </p>
+                {% endif %}
+
+                {% if projeto.palavras_chave %}
+                <p class="projeto-palavras-relatorio">
+                    <strong>Palavras-chave:</strong> {{ projeto.palavras_chave }}
+                </p>
+                {% endif %}
+
+                <p class="projeto-data-relatorio">
+                    <i class="far fa-calendar"></i>
+                    Criado em: {{ projeto.data_criacao.strftime('%d/%m/%Y') if projeto.data_criacao else '-' }}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="texto-vazio">Nenhum projeto criado até o momento.</p>
+        {% endif %}
+    </div>
+
+    <!-- Conversas -->
+    <div class="relatorio-secao">
+        <h3><i class="fas fa-comments"></i> Histórico de Conversas ({{ chats|length }})</h3>
+        {% if chats %}
+        <div class="chats-lista-relatorio">
+            {% for chat in chats %}
+            <div class="chat-relatorio-item">
+                <div class="chat-relatorio-header">
+                    <h6>{{ chat.titulo }}</h6>
+                    <small>{{ chat.data_criacao.strftime('%d/%m/%Y %H:%M') if chat.data_criacao else '' }}</small>
+                </div>
+                <a href="{{ url_for('orientador.visualizar_chat', chat_id=chat.id) }}"
+                    class="btn-visualizar-chat no-print">
+                    <i class="fas fa-eye"></i> Visualizar Conversa Completa
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="texto-vazio">Nenhuma conversa registrada.</p>
+        {% endif %}
+    </div>
+
+    <!-- Observações do Orientador -->
+    <div class="relatorio-secao">
+        <h3><i class="fas fa-clipboard"></i> Observações do Orientador</h3>
+        <div class="observacoes-box">
+            <textarea id="observacoesOrientador" class="observacoes-textarea no-print"
+                data-participante-id="{{ orientado.id }}"
+                placeholder="Adicione suas observações sobre o orientado aqui...">{{ observacoes or '' }}</textarea>
+            <div class="observacoes-print">
+                {{ observacoes or 'Nenhuma observação registrada.' }}
+            </div>
+            <button onclick="salvarObservacoes()" class="btn btn-primary no-print" style="margin-top: 1rem;">
+                <i class="fas fa-save"></i> Salvar Observações
+            </button>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <div class="relatorio-rodape">
+        <p>
+            <strong>Relatório gerado em:</strong> {{ data_geracao.strftime('%d/%m/%Y às %H:%M') }}
+            <br>
+            <strong>Orientador:</strong> {{ current_user.nome_completo }}
+        </p>
+    </div>
+</div>
+
+<!-- Script externo para funções do relatório -->
+<script src="{{ url_for('static', filename='js/relatorio.js') }}"></script>
+{% endblock %}

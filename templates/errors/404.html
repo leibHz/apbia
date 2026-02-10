@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Página não encontrada - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <i class="fas fa-robot error-icon error-icon-muted"></i>
+        <h1 class="error-code error-code-primary">404</h1>
+        <h3 class="error-title">Página não encontrada</h3>
+        <p class="error-message">
+            Desculpe, a página que você está procurando não existe ou foi movida.
+        </p>
+        
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Página Inicial
+            </a>
+            
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('chat.index') }}" class="btn btn-outline">
+                <i class="fas fa-comments"></i> Ir para o Chat
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

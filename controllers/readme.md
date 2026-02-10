@@ -1,0 +1,1 @@
+antes, tava tudo mno controller, a ideia do services veio depois e ainda esta sendo trabalhada, esta em periodo de transição emtao tem coisa que era pra ta  no services mais ta no controller

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Início - APBIA{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>
+                    <i class="fas fa-robot"></i> APBIA
+                </h1>
+                <p class="lead">
+                    Assistente de Projetos para Bragantec Baseado em Inteligência Artificial
+                </p>
+                <p>
+                    Uma ferramenta inovadora desenvolvida para auxiliar estudantes e orientadores 
+                    na criação, planejamento e desenvolvimento de projetos científicos para a 
+                    Bragantec, a feira de ciências do IFSP Bragança Paulista.
+                </p>
+                <div class="hero-actions">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('chat.index') }}" class="btn btn-light">
+                        <i class="fas fa-comments"></i> Acessar Chat
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-light">
+                        <i class="fas fa-sign-in-alt"></i> Fazer Login
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="hero-image">
+                <i class="fas fa-brain"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Funcionalidades -->
+<div class="section">
+    <div class="section-container">
+        <div class="section-title">
+            <h2>
+                <i class="fas fa-star"></i> Funcionalidades
+            </h2>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-lightbulb text-warning"></i>
+                <h5>Geração de Ideias</h5>
+                <p>
+                    Receba sugestões criativas e inovadoras para seu projeto científico
+                    baseadas em áreas de interesse e tendências atuais.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-tasks text-primary"></i>
+                <h5>Planejamento</h5>
+                <p>
+                    Organize seu projeto com cronogramas, metodologias e etapas bem definidas
+                    para garantir o sucesso da execução.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-book-open text-success"></i>
+                <h5>Conhecimento Bragantec</h5>
+                <p>
+                    Acesso ao histórico completo da Bragantec com projetos anteriores,
+                    tendências e insights valiosos.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-robot text-info"></i>
+                <h5>IA Avançada</h5>
+                <p>
+                    Powered by Gemini 2.5 Flash com thinking mode para respostas mais 
+                    profundas e bem fundamentadas.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-users text-danger"></i>
+                <h5>Suporte Personalizado</h5>
+                <p>
+                    Assistência adaptada para participantes e orientadores com 
+                    personalidades de IA específicas.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-history text-secondary"></i>
+                <h5>Histórico</h5>
+                <p>
+                    Todas suas conversas são salvas para você retomar quando quiser
+                    e acompanhar a evolução do seu projeto.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sobre a Bragantec -->
+<div class="section about-section">
+    <div class="section-container">
+        <div class="about-content">
+            <h2>
+                <i class="fas fa-flask"></i> Sobre a Bragantec
+            </h2>
+            <p class="lead">
+                A Bragantec é a feira de ciências do IFSP Câmpus Bragança Paulista, 
+                um evento anual que promove a ciência, tecnologia e inovação através 
+                da apresentação de projetos desenvolvidos por estudantes.
+            </p>
+            <p>
+                O APBIA foi criado para democratizar o acesso a orientação de qualidade, 
+                auxiliando todos os participantes na jornada de criação de seus projetos científicos.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
